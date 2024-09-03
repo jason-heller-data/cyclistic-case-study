@@ -6,6 +6,7 @@
 
 ### Data source
 [divvy_tripdata](https://divvy-tripdata.s3.amazonaws.com/index.html)
+
 [license](https://www.divvybikes.com/data-license-agreement)
 Accessed on 09/01/24.
 
