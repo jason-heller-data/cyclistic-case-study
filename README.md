@@ -51,7 +51,7 @@ The next step is to clean the data. To find errors in the dataset I run some que
 
 First I check for any null values within the dataset.
 
-[code]
+```
 SELECT
     SUM(CASE WHEN ride_id IS NULL THEN 1 ELSE 0 END) AS null_ride_id,
     SUM(CASE WHEN rideable_type IS NULL THEN 1 ELSE 0 END) AS null_rideable_type,
@@ -67,44 +67,44 @@ SELECT
     SUM(CASE WHEN end_lng IS NULL THEN 1 ELSE 0 END) AS null_end_lng,
     SUM(CASE WHEN member_casual IS NULL THEN 1 ELSE 0 END) AS null_member_casual
 FROM tripdata_2023;
-[/code]
+```
 
 All results are 0, showing we have no null values.
 
 Next we search for duplicate columns.
 
-[code]
+```
 SELECT ride_id, COUNT(*) as count
 FROM tripdata_2023
 GROUP BY ride_id
 HAVING count > 1;
-[/code]
+```
 
 We find 12 duplicate columns. We will see this number appear in our later queries.
 
 Next, we ensure our primary key has a consistent format. We do this by checking the length of each entry in the ride_id column.
 
-[code]
+```
 SELECT LENGTH(ride_id) AS len_ride_id, COUNT(ride_id) AS num_rows
 FROM tripdata_2023
 GROUP BY len_ride_id;
-[/code]
+```
 
 This shows us that of the 5,719,889 rows, 12 have a length of seven while the rest have a length of sixteen. We can discern that these 12 are erroneous.
 
 Next, we check the membership data.
 
-[code]
+```
 SELECT DISTINCT rideable_type, COUNT(rideable_type) AS num_types
 FROM tripdata_2023
 GROUP BY rideable_type;
-[/code]
+```
 
 We see the expected 'casual' and 'member' types, but also an erroneous 'member_casual' type-- likely related to the repeated errors we see occuring in volumes of 12.
 
 Lastly, we will look for trips of excessively long and short lengths.
 
-[code]
+```
 SELECT COUNT(*) AS num_too_long
 FROM tripdata_2023
 WHERE strftime('%s', ended_at) - strftime('%s', started_at) >= 86400;
@@ -112,7 +112,7 @@ WHERE strftime('%s', ended_at) - strftime('%s', started_at) >= 86400;
 SELECT COUNT(*) AS num_too_short
 FROM tripdata_2023
 WHERE strftime('%s', ended_at) - strftime('%s', started_at) < 60;
-[/code]
+```
 
 We define a trip longer than or equal to a day as too long and a trip less than a minute to be erroneous trip lengths. From this, we find that 6418 trips were too long and 149,615 were too short.
 
@@ -135,3 +135,70 @@ The following steps are taken:
 The data is now aggregated and cleaned. Using Power BI, I analyzed the dataset and created relevant visualizations to identify trends.
 
 First, let us compare total ridership between memberships.
+
+![member_percent](https://github.com/user-attachments/assets/23c2315c-1a50-41ab-afb7-98c4364f00a6)
+
+We see that 35.96% of all riders do not hold a membership. 
+
+
+
+![mode_transport](https://github.com/user-attachments/assets/ea2fb14d-98f8-4ec2-ac68-533bdeb9cd4b)
+![mode_by_type](https://github.com/user-attachments/assets/caf3e2f9-3a23-48a6-9323-2916e910d854)
+
+Out of the three modes of transport, the electric bike is the most popular, slightly more so than the classic bike. The least used are the docked bikes, which are only used by casual riders.
+
+Next, we examing the volume of ridership over time:
+
+![rider_volume](https://github.com/user-attachments/assets/3993f8e9-10b1-47bc-939f-fc18b62f1cb9)
+
+**Weekly:** Here, we see membership is highest in the weekdays, and casual members ride more often on the weekends. 
+
+**Monthly:** Over an annual timespan, we can see that casual ridership volume is roughly half of the membership volume. Additionally, total ridership peaks in the summer months, namely July and August.
+
+Another metric researched is ride length.
+
+![rider_dist](https://github.com/user-attachments/assets/7bbc692d-9d2c-4f60-a3d6-aca752d6c3dd)
+
+**Weekly:** Notably, casual riders ride duration spikes on weekends, and membership ride length is more stable, but increases on weekdays. This suggests members ride for routine trips such as commuting to work or school, whereas casual riders engage in trips more geared towards leisurely activities.
+
+**Monthly:** For both groups, ridership length spikes in the summer months. One speculation for the cause could simply be that better weather is more conducive to bike trips.
+
+
+Lastly, we examine the GPS data to see where each membership type is heading towards and leaving from.
+
+![ride_start](https://github.com/user-attachments/assets/018d8c11-b5c6-448c-bebf-c6e638f4f85c)
+
+
+Membership riders are more grouped around the metropolitan area of Chicago and start their trips there, which differs from casual riders which generally start their trip near attractions such as parks. Similar trends follow for the terminus of their trips:
+
+
+![ride_end](https://github.com/user-attachments/assets/6aeef621-b1a0-4625-840e-230dad4f0f1d)
+
+
+This lends credulence to the idea that membership riders use the service for their commutes, whereas casual riders use it for leisure.
+
+### Share
+
+Overall, here are the conclusions we can draw:
+
+
+**Casual Riders:**
+1) Ride more often on weekends.
+2) Ride twice as long as members.
+3) Tend to head towards/from attractions such as parks.
+
+**Member Riders:**
+1) Ride more often and ride the most on weekdays
+2) Ride consistent, shorter distances compared to casual riders
+3) Use their trips for commuting
+
+Ridership peaks in the summer for both groups.
+
+### Act
+
+Having identified the behaviorial differences between the two groups, we can draw some conclusions on the best way to convert more riders to joining the membership.
+
+1) Adjust the membership to accomodate riders who wish to use the service for weekend trips.
+2) Incentivize the membership by offering discounts to behaviors exhibited by the casual group, specifically for longer rides or to specific locations such as parks.
+3) Target advertising in the summer months, when ridership is at its highest.
+
